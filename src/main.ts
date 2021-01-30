@@ -1,17 +1,24 @@
 import { NestFactory } from '@nestjs/core';
-import { Transport } from '@nestjs/microservices';
-import { AppModule } from 'src/app.module';
+import { Transport, MicroserviceOptions } from '@nestjs/microservices';
+
+import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const port = process.env.PORT ? Number(process.env.PORT) : 8080;
-  const host = process.env.HOST ? Number(process.env.HOST) : '0.0.0.0';
-  const app = await NestFactory.createMicroservice(AppModule, {
-    transport: Transport.TCP,
-    options: {
-      host,
-      port,
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    AppModule,
+    {
+      transport: Transport.KAFKA,
+      options: {
+        client: {
+          brokers: ['localhost:9092'],
+        },
+        consumer: {
+          groupId: 'delyveri-projects-consumer',
+        },
+      },
     },
-  });
-  await app.listen(() => console.log('Microservice listening on port:', port));
+  );
+
+  app.listen(() => console.log('Kafka consumer service is listening!'));
 }
 bootstrap();
